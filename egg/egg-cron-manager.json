@@ -1,0 +1,53 @@
+{
+  "_comment": "Cron Task Manager for Pterodactyl. Import this egg, then upload the project files into the server directory.",
+  "meta": {
+    "version": "PTDL_v2",
+    "update_url": null
+  },
+  "exported_at": "2026-10-02T00:00:00+08:00",
+  "name": "Cron Task Manager",
+  "author": "cron-task-manager",
+  "description": "Node.js 定时任务运行管理。固定北京时间 Asia/Shanghai，支持可视化选时和 Cron 表达式。可视化修改后自动更新 Cron。",
+  "features": null,
+  "docker_images": {
+    "Node.js 20": "ghcr.io/parkervcp/yolks:nodejs_20",
+    "Node.js 18": "ghcr.io/parkervcp/yolks:nodejs_18"
+  },
+  "file_denylist": [],
+  "startup": "if [ -f /home/container/package.json ]; then npm install --omit=dev; fi; TZ=Asia/Shanghai node /home/container/src/server.js",
+  "config": {
+    "files": "{}",
+    "startup": "{\r\n    \"done\": \"Cron Task Manager listening on\"\r\n}",
+    "logs": "{}",
+    "stop": "^C"
+  },
+  "scripts": {
+    "installation": {
+      "script": "#!/bin/bash\nmkdir -p /mnt/server/data /mnt/server/public /mnt/server/src /mnt/server/egg\ncd /mnt/server\nif [ -f package.json ]; then\n  npm install --omit=dev\nfi\necho \"Upload project files into /home/container then start the server.\"",
+      "container": "ghcr.io/parkervcp/installers:debian",
+      "entrypoint": "bash"
+    }
+  },
+  "variables": [
+    {
+      "name": "Timezone",
+      "description": "调度时区。必须使用北京时间 Asia/Shanghai。",
+      "env_variable": "TZ",
+      "default_value": "Asia/Shanghai",
+      "user_viewable": true,
+      "user_editable": false,
+      "rules": "required|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Admin Password",
+      "description": "Web 管理页面登录密码。通过环境变量 ADMIN_PASSWORD 读取。",
+      "env_variable": "ADMIN_PASSWORD",
+      "default_value": "admin",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|min:1",
+      "field_type": "text"
+    }
+  ]
+}
