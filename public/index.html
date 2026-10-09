@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>定时任务管理</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="locked">
+  <header class="topbar">
+    <div>
+      <h1>定时任务管理</h1>
+      <p>调度时区固定为北京时间 Asia/Shanghai</p>
+    </div>
+    <div class="clock">
+      <span id="clock">--</span>
+      <small id="tz-label">北京时间</small>
+      <button type="button" class="ghost logout-btn" id="logout-btn">退出登录</button>
+    </div>
+  </header>
+
+  <div id="login-screen" class="login-screen">
+    <form id="login-form" class="login-card panel">
+      <h2>登录</h2>
+      <p class="hint">请输入管理密码后进入任务面板</p>
+      <label>
+        密码
+        <input id="login-password" type="password" required autocomplete="current-password" placeholder="管理密码">
+      </label>
+      <p id="login-error" class="login-error"></p>
+      <button type="submit" class="primary">登录</button>
+    </form>
+  </div>
+
+  <main id="app-main">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>任务列表</h2>
+        <div class="head-actions">
+          <button type="button" class="ghost" id="refresh-btn">刷新</button>
+          <button type="button" class="primary" id="create-btn">新建任务</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="jobs-table">
+          <thead>
+            <tr>
+              <th>任务名称</th>
+              <th>命令</th>
+              <th>Cron</th>
+              <th>状态</th>
+              <th>下次执行</th>
+              <th>最近运行</th>
+              <th>编辑</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="jobs-body">
+            <tr><td colspan="8" class="empty">还没有任务</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>最近运行日志</h2>
+      </div>
+      <div id="runs" class="runs"></div>
+    </section>
+  </main>
+
+  <div id="modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="form-title">
+      <div class="panel-head">
+        <h2 id="form-title">新建任务</h2>
+        <button type="button" class="ghost" data-close-modal>关闭</button>
+      </div>
+      <form id="job-form">
+        <input type="hidden" id="job-id">
+        <label>
+          任务名称
+          <input id="name" required placeholder="例如：每天备份">
+        </label>
+        <label>
+          执行命令
+          <textarea id="command" required placeholder="echo hello"></textarea>
+        </label>
+        <div class="grid two">
+          <label>
+            工作目录（可选）
+            <input id="cwd" placeholder="相对当前容器目录">
+          </label>
+          <label>
+            超时毫秒
+            <input id="timeoutMs" type="number" min="1000" value="120000">
+          </label>
+        </div>
+        <label class="inline">
+          <input id="enabled" type="checkbox" checked>
+          <span id="enabled-label">创建后立即启用</span>
+        </label>
+
+        <div class="mode-switch">
+          <button type="button" class="mode active" data-mode="visual">可视化选择时间</button>
+          <button type="button" class="mode" data-mode="cron">Cron 表达式</button>
+        </div>
+
+        <div id="visual-box" class="schedule-box">
+          <label>
+            执行频率
+            <select id="visual-type">
+              <option value="every_minute">每分钟</option>
+              <option value="interval_minute">每隔 N 分钟</option>
+              <option value="hourly">每小时指定分钟</option>
+              <option value="interval_hour">每隔 N 小时</option>
+              <option value="daily" selected>每天指定时刻</option>
+              <option value="weekly">每周指定星期</option>
+              <option value="monthly">每月指定日期</option>
+            </select>
+          </label>
+          <div class="grid three">
+            <label>
+              小时
+              <input id="visual-hour" type="number" min="0" max="23" value="9">
+            </label>
+            <label>
+              分钟
+              <input id="visual-minute" type="number" min="0" max="59" value="0">
+            </label>
+            <label>
+              间隔
+              <input id="visual-interval" type="number" min="1" max="59" value="5">
+            </label>
+          </div>
+          <label>
+            每月日期
+            <input id="visual-day" type="number" min="1" max="31" value="1">
+          </label>
+          <div class="weekdays" id="weekdays"></div>
+          <p class="hint">修改可视化选项后，下方 Cron 会立即同步更新。</p>
+        </div>
+
+        <div id="cron-box" class="schedule-box hidden">
+          <label>
+            Cron 表达式（分 时 日 月 星期）
+            <input id="cron" placeholder="0 9 * * *">
+          </label>
+          <p class="hint">支持标准 5 段 Cron。可视化选择产生的表达式会填到这里。</p>
+        </div>
+
+        <div class="preview">
+          <div><strong>当前 Cron：</strong><code id="cron-preview">0 9 * * *</code></div>
+          <div>
+            <strong>下次执行（北京时间）：</strong>
+            <ul id="next-runs"></ul>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="ghost" data-close-modal>取消</button>
+          <button type="submit" id="save-btn">保存任务</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
