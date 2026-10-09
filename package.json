@@ -1,0 +1,20 @@
+{
+  "name": "cron-task-manager",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Beijing-time cron task manager for Pterodactyl",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "cron-parser": "^4.9.0",
+    "express": "^4.21.2",
+    "node-cron": "^3.0.3"
+  }
+}
